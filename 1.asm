@@ -1,7 +1,7 @@
 .model small
 .stack 100h
 .data
-    buffer DB 90, ?, 90 dup (0)
+    buffer DB 100, ?, 100 dup (0)
     inputMessage DB 'The program has started, please enter the symbol line here: $'             
     outputMessage DB 'The output of the program is: $'
     newLine	DB 10, 13, '$'
@@ -66,7 +66,7 @@ processing:
         LEA BX, lengthMessage
         ADD BX, 8
         MOV DS:[BX], AL 
-        MOV byte ptr [BX+4], '$'
+        MOV byte ptr [BX+1], '$'
         JMP output
         
     doubleDigit:
@@ -78,7 +78,7 @@ processing:
     	LEA BX, lengthMessage
         ADD BX, 8
         MOV DS:[BX], AX 
-        MOV word ptr [BX+4], '$'
+        MOV byte ptr [BX+2], '$'
         JMP output
 
 output:
