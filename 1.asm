@@ -5,7 +5,7 @@
     inputMessage DB 'The program has started, please enter the symbol line here: $'             
     outputMessage DB 'The output of the program is: $'
     newLine	DB 10, 13, '$'
-    lengthMessage DB ' (ilgis   )'    
+    lengthMessage DB '. Ilgis  '    
 .code
 
 main:
