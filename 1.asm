@@ -5,7 +5,7 @@
     inputMessage DB 'The program has started, please enter the symbol line here: $'             
     outputMessage DB 'The output of the program is: $'
     newLine	DB 10, 13, '$'
-    lengthMessage DB '. Ilgis  '    
+    lengthMessage DB '. Length   '    
 .code
 
 main:
@@ -64,7 +64,7 @@ processing:
         JAE doubleDigit
         ADD AL, 48
         LEA BX, lengthMessage
-        ADD BX, 8
+        ADD BX, 9
         MOV DS:[BX], AL 
         MOV byte ptr [BX+1], '$'
         JMP output
@@ -76,7 +76,7 @@ processing:
     	ADD AL, 30h
     	ADD AH, 30h
     	LEA BX, lengthMessage
-        ADD BX, 8
+        ADD BX, 9
         MOV DS:[BX], AX 
         MOV byte ptr [BX+2], '$'
         JMP output
