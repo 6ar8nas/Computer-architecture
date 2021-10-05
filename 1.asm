@@ -5,7 +5,7 @@
     inputMessage DB 'The program has started, please enter the symbol line here: $'             
     outputMessage DB 'The output of the program is: $'
     newLine	DB 10, 13, '$'
-    lengthMessage DB '. Length   '    
+    lengthMessage DB '. Ilgis  '    
 .code
 
 main:
@@ -26,8 +26,7 @@ input:
     INT 21h  
       
 processing:
-    LEA BX, buffer
-    ADD BX, 1 
+    LEA BX, [buffer + 1]
     MOV AL, DS:[BX]               
     MOV DL, 0
     
@@ -38,24 +37,28 @@ processing:
         CMP DL, AL
         JA finalizing 
         
-        CMP DS:[BX], 'A'
+		MOV CL, DS:[BX]
+		
+        CMP CL, 'A'
         JB nextIteration
         
-        CMP DS:[BX], 'z'
+        CMP CL, 'z'
         JA nextIteration 
         
-        CMP DS:[BX], 'Z'
+        CMP CL, 'Z'
         JBE uppercase
         
-        CMP DS:[BX], 'a'
+        CMP CL, 'a'
         JAE lowercase
         
     uppercase:
-        ADD DS:[BX], 32
+        ADD CL, 32
+		MOV DS:[BX], CL
         JMP nextIteration    
         
     lowercase:
-        SUB DS:[BX], 32
+        SUB CL, 32
+		MOV DS:[BX], CL
         JMP nextIteration
         
     finalizing:
@@ -63,8 +66,7 @@ processing:
         CMP AL, 10
         JAE doubleDigit
         ADD AL, 48
-        LEA BX, lengthMessage
-        ADD BX, 9
+		LEA BX, [lengthMessage + 8]
         MOV DS:[BX], AL 
         MOV byte ptr [BX+1], '$'
         JMP output
@@ -75,8 +77,7 @@ processing:
     	DIV BL
     	ADD AL, 30h
     	ADD AH, 30h
-    	LEA BX, lengthMessage
-        ADD BX, 9
+		LEA BX, [lengthMessage + 8]
         MOV DS:[BX], AX 
         MOV byte ptr [BX+2], '$'
         JMP output
