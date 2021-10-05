@@ -37,7 +37,7 @@ processing:
         CMP DL, AL
         JA finalizing 
         
-		MOV CL, DS:[BX]
+	MOV CL, DS:[BX]
 		
         CMP CL, 'A'
         JB nextIteration
@@ -53,12 +53,12 @@ processing:
         
     uppercase:
         ADD CL, 32
-		MOV DS:[BX], CL
+	MOV DS:[BX], CL
         JMP nextIteration    
         
     lowercase:
         SUB CL, 32
-		MOV DS:[BX], CL
+	MOV DS:[BX], CL
         JMP nextIteration
         
     finalizing:
@@ -66,7 +66,7 @@ processing:
         CMP AL, 10
         JAE doubleDigit
         ADD AL, 48
-		LEA BX, [lengthMessage + 8]
+	LEA BX, [lengthMessage + 8]
         MOV DS:[BX], AL 
         MOV byte ptr [BX+1], '$'
         JMP output
@@ -77,7 +77,7 @@ processing:
     	DIV BL
     	ADD AL, 30h
     	ADD AH, 30h
-		LEA BX, [lengthMessage + 8]
+	LEA BX, [lengthMessage + 8]
         MOV DS:[BX], AX 
         MOV byte ptr [BX+2], '$'
         JMP output
