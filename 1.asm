@@ -88,7 +88,7 @@ output:
     INT 21h
         
     MOV AH, 09h
-    LEA DX, [buffer + 2]            ; vykdau buferio spausdinimą
+    LEA DX, [buffer + 2]            
     INT 21h
     
     MOV AH, 09h
