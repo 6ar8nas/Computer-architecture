@@ -4,7 +4,7 @@
     buffer DB 100, ?, 100 dup (0)
     inputMessage DB 'The program has started, please enter the symbol line here: $'             
     outputMessage DB 'The output of the program is: $'
-    newLine	DB 10, 13, '$'
+    newLine DB 10, 13, '$'
     lengthMessage DB '. Ilgis  '    
 .code
 
