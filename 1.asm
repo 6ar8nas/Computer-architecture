@@ -36,20 +36,26 @@ processing:
            
         CMP DL, AL
         JA finalizing 
-        
+		
 	MOV CL, DS:[BX]
+		
+	CMP CL, '0'
+	JB nextIteration
+		
+	CMP CL, '9'
+	JBE integer
 		
         CMP CL, 'A'
         JB nextIteration
         
-        CMP CL, 'z'
-        JA nextIteration 
-        
-        CMP CL, 'Z'
+	CMP CL, 'Z'
         JBE uppercase
         
-        CMP CL, 'a'
-        JAE lowercase
+	CMP CL, 'a'
+        JB nextIteration 
+            
+        CMP CL, 'z'
+        JBE lowercase
         
     uppercase:
         ADD CL, 32
@@ -58,6 +64,11 @@ processing:
         
     lowercase:
         SUB CL, 32
+	MOV DS:[BX], CL
+        JMP nextIteration
+	
+	integer:
+        MOV CL, ' '
 	MOV DS:[BX], CL
         JMP nextIteration
         
@@ -88,7 +99,7 @@ output:
     INT 21h
         
     MOV AH, 09h
-    LEA DX, [buffer + 2]            
+    LEA DX, [buffer + 2]
     INT 21h
     
     MOV AH, 09h
