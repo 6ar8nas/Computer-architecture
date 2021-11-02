@@ -4,17 +4,19 @@
 
 .model small		    
 readBufSize     EQU 16	
-writeBufSize    EQU 16	
-.stack 100h			 
+.stack 100h		
 .data                
     readName1       DB 50 dup (?)
    	readBuf1    	DB readBufSize dup (?)
-   	readHandle1     DW ?
+   	readHandle1     DW ?   
+   	
     readName2       DB 50 dup (?)                      
-    readBuf2    	DB readBufSize dup (?)	
-    readHandle2     DW ?
+    readBuf2    	DB readBufSize dup (?)
+    readHandle2     DW ?         
+    
     writeName       DB 50 dup (?)
     writeHandle     DW ?
+    
     help            DB 'Programa skirta isvesti dvieju bet kokio ilgio dvejetainiu skaiciu, esanciu skirtinguose failuose, AND operacijos rezultata taip pat dvejetainiu formatu.$'   
     successMessage  DB 'Programa buvo ivykdyta be klaidu, rezultatu ieskokite faile $'
 .code
@@ -24,7 +26,8 @@ main:
     MOV DS, AX  
     	
 	MOV SI, 0
-	MOV BH, 0
+	MOV BH, 0   
+	
 	
 	LEA DI, readName1
 	CALL findFileName
@@ -40,30 +43,31 @@ main:
 	CALL findFileName
 	CMP BH, 0FFh
 	JE interrupt  
-		
-	MOV AX, 3D00h
+	
+	
+	MOV AX, 3D00h                  
 	LEA DX, readName1
 	INT 21h
-	JC interrupt                  
-	MOV readHandle1, AX         
+	JC interrupt                   
+	MOV readHandle1, AX            
 	
 	MOV AX, 3D00h
 	LEA DX, readName2
 	INT 21h
-	JC interrupt                   
-	MOV readHandle2, AX     
+	JC interrupt                    
+	MOV readHandle2, AX          
 	 
-	MOV AH, 3Ch
-	MOV CX, 0                  
+	MOV AH, 3Ch                   
+	MOV CX, 0                      
 	LEA DX, writeName
 	INT 21h
-	JC interrupt
-	MOV writeHandle, AX 
+	JC interrupt                    
+	MOV writeHandle, AX            
 	
 	JMP readFile
 	
 		
-    interrupt: 
+    interrupt:   
     	MOV AH, 09h  
         LEA DX, help
         INT 21h
@@ -72,21 +76,21 @@ main:
 	readFile:
 	    
 	    MOV BH, 0
-	    CALL readToBuf
+	    CALL readToBuf    
 	    CMP BH, 0FFh
 	    JE interrupt
-	    CMP AX, 0
+	    CMP AX, 0       
 	    JE finalizing
 	
 	
 	processingInput:
-	    MOV CX, AX
+	    MOV CX, AX          
 	    LEA SI, readBuf1
 	    LEA DI, readBuf2
 	    iterating:
     	    MOV DL, [SI]
     	    MOV DH, [DI]
-    	    CMP DL, '1'
+    	    CMP DL, '1'     
     	    JA interrupt
     	    CMP DH, '1'
     	    JA interrupt
@@ -94,24 +98,27 @@ main:
     	    JB interrupt
     	    CMP DH, '0'
     	    JB interrupt
+    	    SUB DL, '0'
+    	    SUB DH, '0'
     	    AND DL, DH
-    	    MOV [SI], DL
+    	    ADD DL, '0'          
+    	    MOV [SI], DL       
     	    INC SI
     	    INC DI
-    	    LOOP iterating	
+    	    LOOP iterating	    
 	
 	outputToFile:
 	    
-	    MOV CX, AX
-	    MOV BX, writeHandle
+	    MOV CX, AX           
+	    MOV BX, writeHandle  
 	    CALL writeFromBuf
 	    CMP DH, 0FFh
-	    JE interrupt
-	    CMP AX, readBufSize
+	    JE interrupt         
+	    CMP AX, readBufSize   
 	    JE readFile  
 	 
 	 
-	finalizing:         
+	finalizing:           
 	
 	MOV AH, 3Eh
 	MOV BX, writeHandle   
@@ -119,18 +126,19 @@ main:
 	JC interrupt
 	
 	MOV AH, 3Eh
-	MOV BX, readHandle1   
+	MOV BX, readHandle1    
 	INT 21h
 	JC interrupt
 	
 	MOV AH, 3Eh
-	MOV BX, readHandle2    
+	MOV BX, readHandle2     
 	INT 21h
 	JC interrupt
 	
 	MOV AH, 09h
 	LEA DX, successMessage
 	INT 21h
+	
 	MOV AH, 09h
 	LEA DX, writeName
 	INT 21h
@@ -142,13 +150,13 @@ null:
     
 PROC findFileName
     
-    MOV BL, 0
+    MOV BL, 0             
     MOV AL, ES:[81h+SI]
     CMP AL, ' '
     JE skipSpaces
     JMP nextIteration
     
-	skipSpaces:     
+	skipSpaces:   
     	INC SI
     	MOV AL, ES:[81h+SI]
     	CMP AL, ' '
@@ -156,29 +164,28 @@ PROC findFileName
 	
     nextIteration: 
         MOV AL, ES:[81h+SI]
-        CMP AL, ' '
+        CMP AL, ' '              
         JE procEnd
-        CMP ES:[81h+SI], '?/'
+        CMP ES:[81h+SI], '?/'    
         JE helpCall   
-        continue:
-        CMP AL, 0Dh
+        CMP AL, 0Dh               
         JE procEnd
-        MOV DS:[DI], AL
-        INC BL           
+        MOV DS:[DI], AL            
+        INC BL               
         INC DI
         INC SI
         JMP nextIteration
         
     helpCall:
-        MOV BH, 0FFh
+        MOV BH, 0FFh              
         INC BL
         JMP procEnd
         
     procEnd:
         MOV AL, 0
-        MOV DS:[DI], AL
+        MOV DS:[DI], AL            
         CMP BL, 0
-        JE helpCall
+        JE helpCall               
         INC DI       
         MOV AL, '$'
         MOV DS:[DI], AL
@@ -187,32 +194,26 @@ PROC findFileName
         
 findFileName ENDP
 
-PROC readToBuf
-    PUSH BX
-    PUSH CX
-    PUSH DX
+PROC readToBuf           
     MOV CX, readBufSize
     
     MOV AH, 3Fh
-    LEA DX, readBuf1 
+    LEA DX, readBuf1      
     MOV BX, readHandle1
     INT 21h
     JC readErrorException
     
     MOV AH, 3Fh
     MOV CX, readBufSize
-    LEA DX, readBuf2   
+    LEA DX, readBuf2      
     MOV BX, readHandle2
     INT 21h
     JC readErrorException
     
     readToBufEnd:
-        POP DX
-        POP CX
-        POP BX
         RET  
         
-    readErrorException:
+    readErrorException:     
         MOV BH, 0FFh
         MOV AX, 0       
         JMP readToBufEnd
@@ -221,17 +222,17 @@ readToBuf ENDP
 
 PROC writeFromBuf
     MOV AH, 40h
-    LEA DX, readBuf1
+    LEA DX, readBuf1           
     INT 21h
-    JC writeErrorException
+    JC writeErrorException    
     CMP CX, AX
     JNE writeErrorException
     
-    writeFromBufEnd:
+    writeFromBufEnd:          
         RET
     
     writeErrorException:
-        MOV DH, 0FFh
+        MOV DH, 0FFh       
         JMP writeFromBufEnd
 writeFromBuf ENDP    
         
