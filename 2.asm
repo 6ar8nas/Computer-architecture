@@ -202,6 +202,7 @@ PROC readToBuf
     MOV BX, readHandle1
     INT 21h
     JC readErrorException
+	PUSH AX
     
     MOV AH, 3Fh
     MOV CX, readBufSize
@@ -209,6 +210,11 @@ PROC readToBuf
     MOV BX, readHandle2
     INT 21h
     JC readErrorException
+	
+	POP DX
+	
+	CMP AX, DX
+	JNE readErrorException
     
     readToBufEnd:
         RET  
