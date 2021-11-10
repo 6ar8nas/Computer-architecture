@@ -5,20 +5,22 @@
 .model small		    
 readBufSize     EQU 16	
 .stack 100h		
-.data                
-    readName1       DB 50 dup (?)
-   	readBuf1    	DB readBufSize dup (0)
-   	readHandle1     DW ?   
+.data            
+	howManyTimesRead DB 0
+    
+    readName1        DB 50 dup (?)
+   	readBuf1    	 DB readBufSize dup (0)
+   	readHandle1      DW ?   
    	
-    readName2       DB 50 dup (?)                      
-    readBuf2    	DB readBufSize dup (0)
-    readHandle2     DW ?         
+    readName2        DB 50 dup (?)                      
+    readBuf2    	 DB readBufSize dup (0)
+    readHandle2      DW ?         
     
-    writeName       DB 50 dup (?)
-    writeHandle     DW ?
+    writeName        DB 50 dup (?)
+    writeHandle      DW ?
     
-    help            DB 'Programa skirta isvesti dvieju bet kokio ilgio dvejetainiu skaiciu, esanciu skirtinguose failuose, AND operacijos rezultata taip pat dvejetainiu formatu.$'   
-    successMessage  DB 'Programa buvo ivykdyta be klaidu, rezultatu ieskokite faile $'
+    help             DB 'Programa skirta isvesti dvieju bet kokio ilgio dvejetainiu skaiciu, esanciu skirtinguose failuose, AND operacijos rezultata taip pat dvejetainiu formatu.$'   
+    successMessage   DB 'Programa buvo ivykdyta be klaidu, rezultatu ieskokite faile $'
 .code
 
 main:                  
@@ -202,16 +204,22 @@ PROC readToBuf
     INT 21h
     JC readErrorException
 	PUSH AX
-    
+	
     MOV AH, 3Fh
     MOV CX, readBufSize
     LEA DX, readBuf2      
     MOV BX, readHandle2
     INT 21h
     JC readErrorException
-	
 	POP DX
 	
+	CMP AX, 0
+	JE errorCheck
+	CMP DX, 0
+	JE errorCheck
+	
+	errorCheckReturn:
+	INC howManyTimesRead
 	CMP AX, DX
 	JB switch
 	JMP readToBufEnd
@@ -226,6 +234,11 @@ PROC readToBuf
         MOV BH, 0FFh
         MOV AX, 0       
         JMP readToBufEnd
+		
+	errorCheck:
+	CMP howManyTimesRead, 0
+	JE readErrorException
+	JMP errorCheckReturn
         
 readToBuf ENDP
 
