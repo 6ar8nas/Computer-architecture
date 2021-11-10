@@ -7,11 +7,11 @@ readBufSize     EQU 16
 .stack 100h		
 .data                
     readName1       DB 50 dup (?)
-   	readBuf1    	DB readBufSize dup (?)
+   	readBuf1    	DB readBufSize dup (0)
    	readHandle1     DW ?   
    	
     readName2       DB 50 dup (?)                      
-    readBuf2    	DB readBufSize dup (?)
+    readBuf2    	DB readBufSize dup (0)
     readHandle2     DW ?         
     
     writeName       DB 50 dup (?)
@@ -27,8 +27,7 @@ main:
     	
 	MOV SI, 0
 	MOV BH, 0   
-	
-	
+		
 	LEA DI, readName1
 	CALL findFileName
 	CMP BH, 0FFh
@@ -64,23 +63,23 @@ main:
 	JC interrupt                    
 	MOV writeHandle, AX            
 	
-	JMP readFile
-	
-		
-    interrupt:   
-    	MOV AH, 09h  
-        LEA DX, help
-        INT 21h
-        JMP null
+	JMP readFile 
         
 	readFile:
-	    
+	    CALL clearBuf
 	    MOV BH, 0
 	    CALL readToBuf    
 	    CMP BH, 0FFh
 	    JE interrupt
 	    CMP AX, 0       
 	    JE finalizing
+		JMP processingInput
+		
+	interrupt:   
+    	MOV AH, 09h  
+        LEA DX, help
+        INT 21h
+        JMP null
 	
 	
 	processingInput:
@@ -90,6 +89,7 @@ main:
 	    iterating:
     	    MOV DL, [SI]
     	    MOV DH, [DI]
+    	    CALL makeMoreNumbers
     	    CMP DL, '1'     
     	    JA interrupt
     	    CMP DH, '1'
@@ -105,19 +105,18 @@ main:
     	    MOV [SI], DL       
     	    INC SI
     	    INC DI
-    	    LOOP iterating	    
+    	    LOOP iterating	
+    	    JMP outputToFile
 	
 	outputToFile:
-	    
 	    MOV CX, AX           
 	    MOV BX, writeHandle  
 	    CALL writeFromBuf
 	    CMP DH, 0FFh
-	    JE interrupt         
+	    JE interrupt  
 	    CMP AX, readBufSize   
-	    JE readFile  
-	 
-	 
+	    JE readFile
+		
 	finalizing:           
 	
 	MOV AH, 3Eh
@@ -166,7 +165,7 @@ PROC findFileName
         MOV AL, ES:[81h+SI]
         CMP AL, ' '              
         JE procEnd
-        CMP ES:[81h+SI], '?/'    
+        CMP ES:[81h+SI], '?/'  
         JE helpCall   
         CMP AL, 0Dh               
         JE procEnd
@@ -214,7 +213,11 @@ PROC readToBuf
 	POP DX
 	
 	CMP AX, DX
-	JNE readErrorException
+	JB switch
+	JMP readToBufEnd
+	
+	switch:
+	    MOV AX, DX
     
     readToBufEnd:
         RET  
@@ -240,6 +243,39 @@ PROC writeFromBuf
     writeErrorException:
         MOV DH, 0FFh       
         JMP writeFromBufEnd
-writeFromBuf ENDP    
+writeFromBuf ENDP
+
+PROC makeMoreNumbers 
+	CMP DL, 0
+	JE incDL
+	CMP DH, 0
+	JE incDH
+	return:
+	
+	RET
+	
+	incDL:
+        MOV DL, '0'
+        JMP return
+            
+    incDH:
+        MOV DH, '0'
+        JMP return
+makeMoreNumbers ENDP
+
+PROC clearBuf
+	MOV CX, readBufSize
+	LEA BX, readBuf1
+	LEA BP, readBuf2
+	MOV AL, 0
+	clear:
+	MOV DS:[BX], AL
+	MOV DS:[BP], AL
+	INC BX
+	INC BP
+	LOOP clear
+	RET
+clearBuf ENDP
+	
         
 end main
