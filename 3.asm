@@ -173,27 +173,23 @@ interrupt:
 		MOV addrByte, AH
 		MOV offset1, BL
 		MOV offset2, BH
-
-	
-	; tikriname ar tai komanda INC 1111 111w mod 000 r/m [poslinkis]
-	; tikriname ar tai komanda DEC 1111 111w mod 001 r/m [poslinkis]
 	                           
 	checkOPCode:
 		PUSH AX
 		AND AL, 0FEh 
 		CMP AL, 0FEh	
 		POP AX 
-		JE checkaddrByte       ; 1111 111w mm00 1rrr
+		JE checkaddrByte     
 		JMP return
 		
 	checkaddrByte:
 		PUSH AX
-		AND AH, 38h           ; 1111 111w mm00 0rrr
-		CMP AH, 0h			  ;           0011 1000
+		AND AH, 38h          
+		CMP AH, 0h			
 		POP AX
-		JE setINCVal					;
-		PUSH AX               ; 1111 111w mm00 1rrr
-		AND AH, 38h           ;           0011 1000
+		JE setINCVal		
+		PUSH AX            
+		AND AH, 38h          
 		CMP AH, 8h
 		POP AX
 		JE setDECVal
