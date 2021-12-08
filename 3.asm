@@ -235,7 +235,7 @@ interrupt:
 		
 					
 		MOV AH, 09h
-		LEA DX, commandFound ; 
+		LEA DX, commandFound
 		INT 21h
 		
 		JMP printInfo
