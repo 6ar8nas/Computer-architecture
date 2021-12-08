@@ -1,18 +1,19 @@
 ; ------------------------------------------------
 ; Programos autorius - Sarunas Griskus.  
 ; Programa yra atlikta ivykdant 3 uzduoties 13 varianto reikalavimus. 
-; Programa - tai zingsninio rezimo pertraukimo (int 1) apdorojimo procedura, atpazistanti komanda INC r/m.
+; Programa - tai zingsninio rezimo pertraukimo (int 1) apdorojimo procedura, atpazistanti komanda INC r/m ir DEC r/m.
 ;-------------------------------------------------
 
 .model small
 .stack 100h
 .data
-    authorMessage DB 'Programos autorius: Sarunas. Griskus', 10, 13, 'Programa yra atlikta ivykdant 3 uzduoties 13 varianto reikalavimus.', 10, 13, 'Programa - tai zingsninio rezimo pertraukimo (int 1) apdorojimo procedura, atpazistanti komanda INC r/m.', 10, 13, 10, 13, '$'             
+    authorMessage DB 'Programos autorius: Sarunas. Griskus', 10, 13, 'Programa yra atlikta ivykdant 3 uzduoties 13 varianto reikalavimus.', 10, 13, 'Programa - tai zingsninio rezimo pertraukimo (int 1) apdorojimo procedura, atpazistanti komanda INC/DEC r/m.', 10, 13, 10, 13, '$'             
 	commandFound DB 'Zingsninis pertraukimas!', 10, 13, '$'
 	colon DB ':$'
 	space DB ' $'
 	comma DB ', $'
 	incText DB ' INC $'
+	decText DB ' DEC $'
 	semicolon DB '; $'
 	equalsSign db ' = $'
 	newLine DB 10, 13, '$'
@@ -75,6 +76,9 @@
 	DIOffsetname db 'DI$'
 	BPOffsetname db 'BP$'
 	BXOffsetname db 'BX$'	
+	
+	INCorDEC db ? ; 0 - inc, 1 - dec
+	
 .code
 
 main:                  
@@ -82,46 +86,45 @@ main:
     MOV DS, AX  
     
     MOV AH, 09h  
-    LEA DX, authorMessage		; atspausdiname pranesima apie autoriu
+    LEA DX, authorMessage
     INT 21h
     	     
-    MOV AX, 0					; per darbini registra i es isirasome 0 reiksme, nes pertraukimo vektoriu lenteles segmentas prasideda nuo nulinio adreso
+    MOV AX, 0		
     MOV ES, AX
 
-	MOV AX, ES:[4]				; IP nurodantis zodis padetas: 00004, 00005 (jaun, vyr)
-	MOV BX, ES:[6]				; CS nurodantis zodis padetas: 00006, 00007 (jaun, vyr)
+	MOV AX, ES:[4]	
+	MOV BX, ES:[6]		
 	
 	MOV primaryCS, BX
 	MOV primaryIP, AX  
 	
-	MOV BX, offset interrupt	;Pertraukimo IP reiksme imama offset pertraukimas
-	MOV AX, CS					;Pertraukimo CS reiksme imame tokia, kokia ji yra sioje programos vietoje
+	MOV BX, offset interrupt
+	MOV AX, CS		
 	
-	MOV ES:[4], BX				; CS ir IP reiksmes ikeliamos i buvusias CS ir IP reiksmes pradineje vektoriu lenteleje
+	MOV ES:[4], BX			
 	MOV ES:[6], AX				
 	
 	
 	activatingStepMode:
 		PUSHF
 		POP AX
-		OR AX, 0100h			; pakeiciame trap flag reiksme, kad ijungtume zingsnini rezima
+		OR AX, 0100h
 		PUSH AX
 		POPF
 		NOP
 	
-	; vykdome kelias operacijas, kad procesorius galetu aptikti INC komanda ir galetu kilti pertraukimas
-	; sias komandas nagrines pertraukimo apdorojimo procedura
 	
 	INC byte ptr DS:[4352h]
 	INC byte ptr  [BP + 42h]
-	INC word ptr [BP + DI + 567h]
+	DEC word ptr [BP + DI + 567h]
 	INC word ptr [SI]
-	INC byte ptr [BP + DI]
+	DEC byte ptr [BP + DI]
 	INC word ptr [BP]
 	INC AH
 	INC CL
 	
 	DEC BL  	
+
 	MOV BX, AX
 	ADD AH, AL
 	
@@ -129,13 +132,13 @@ main:
 	deactivatingStepMode:
 		PUSHF
 		POP AX
-		AND AX, 0FEFFh 			; pakeiciame trap flag reiksme, kad isjungtume zingsnini rezima
+		AND AX, 0FEFFh 			
 		PUSH AX
 		POPF						
 	
 	MOV AX, primaryIP
 	MOV BX, primaryCS
-	MOV ES:[4], AX				; atstatomas tikras pertraukimo apdorojimo programos adresas vektoriuje sugrazinant pries tai buvusias CS ir IP reiksmes
+	MOV ES:[4], AX				
 	MOV ES:[6], BX
 	
 	null:    
@@ -148,19 +151,19 @@ interrupt:
 		MOV backupAX, AX
 		MOV backupBX, BX
 		MOV backupCX, CX
-		MOV backupDX, DX		; pertraukimas turi netrikdyti programos darbo, tad po interrupto turesime sugrazinti reiksmes, del to jas uzsisaugome
+		MOV backupDX, DX	
 		MOV backupSP, SP
 		MOV backupBP, BP
 		MOV backupSI, SI
 		MOV backupDI, DI
 	
-	POP SI 						; pasiimam IP reiksme (kvieciant pertraukima ji buvo i steka padeta paskutine)
-	POP DI 						; pasiimam CS reiksme
-	PUSH DI 					; padedam ka tik paimtas reiksmes atgal i stacka - CS
-	PUSH SI						; vel padedam atgal - nagrinejama komanda esancia CS:IP (naudosime DI:SI)
+	POP SI 				
+	POP DI 					
+	PUSH DI 		
+	PUSH SI			
 	
 	
-	;Susidedam masininio kodo baitus i atminti
+
 	
 	MOV AX, CS:[SI]
 	MOV BX, CS:[SI+2]
@@ -173,29 +176,49 @@ interrupt:
 
 	
 	; tikriname ar tai komanda INC 1111 111w mod 000 r/m [poslinkis]
+	; tikriname ar tai komanda DEC 1111 111w mod 001 r/m [poslinkis]
 	                           
 	checkOPCode:
 		PUSH AX
 		AND AL, 0FEh 
 		CMP AL, 0FEh	
-		POP AX
-		JE checkaddrByte
+		POP AX 
+		JE checkaddrByte       ; 1111 111w mm00 1rrr
 		JMP return
 		
 	checkaddrByte:
 		PUSH AX
-		AND AH, 38h 
-		CMP AH, 0h
+		AND AH, 38h           ; 1111 111w mm00 0rrr
+		CMP AH, 0h			  ;           0011 1000
 		POP AX
-		JE findValues
+		JE setINCVal					;
+		PUSH AX               ; 1111 111w mm00 1rrr
+		AND AH, 38h           ;           0011 1000
+		CMP AH, 8h
+		POP AX
+		JE setDECVal
 		JMP return
+		
+	setINCVal:
+		PUSH AX
+		MOV AL, 0h
+		MOV INCorDEC, AL
+		POP AX
+		JMP findValues
+	
+	setDecVal:
+		PUSH AX
+		MOV AL, 1h
+		MOV INCorDEC, AL
+		POP AX
+		JMP findValues
 		
 	findValues:
 
-		findRM:              ; 1111 111w mm00 0rrr
+		findRM:           
 			PUSH AX
-			AND AH, 7h       ; 1111 111
-			MOV rmValue, AH  ; 0000 0111
+			AND AH, 7h     
+			MOV rmValue, AH 
 			POP AX
 
 		findMOD:
@@ -272,10 +295,21 @@ interrupt:
 		CALL printAX
 		
 		continueAfterDirectAdressCheck:
+		MOV AL, INCorDEC
+		CMP AL, 0h
+		JNE printDec
+	printINC:
 		MOV AH, 09h
 		LEA DX, incText
 		INT 21h
+		JMP compareMod
+	printDec:
+		MOV AH, 09h
+		LEA DX, decText
+		INT 21h
 		
+		
+	compareMod:
 		MOV CL, modValue
 		CMP CL, 3h
 		
@@ -312,7 +346,7 @@ interrupt:
 		MOV AX, backupAX 
 		MOV BX, backupBX
 		MOV CX, backupCX
-		MOV DX, backupDX		; atstatomos pradines registru reiksmes is pertraukimo pradzioje issisaugotu reiksmiu
+		MOV DX, backupDX	
 		MOV SP, backupSP
 		MOV BP, backupBP
 		MOV SI, backupSI
@@ -357,7 +391,7 @@ printHex:
 	PUSH AX
 	PUSH DX
 	
-	AND AL, 0Fh			; nunulinam vyresniji pusbaiti
+	AND AL, 0Fh		
 	CMP AL, 9
 	JA printHexAF
 	JMP printHex09
@@ -1157,5 +1191,3 @@ printRegValue ENDP
 
 
 end main
-
-
