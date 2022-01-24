@@ -1,9 +1,3 @@
-; ------------------------------------------------
-; Programos autorius - Sarunas Griskus.  
-; Programa yra atlikta ivykdant 3 uzduoties 13 varianto reikalavimus. 
-; Programa - tai zingsninio rezimo pertraukimo (int 1) apdorojimo procedura, atpazistanti komanda INC r/m ir DEC r/m.
-;-------------------------------------------------
-
 .model small
 .stack 100h
 .data
