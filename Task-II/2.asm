@@ -1,7 +1,3 @@
-; Programos autorius - Sarunas Griskus.
-; Programa yra atlikta ivykdant 2 uzduoties 21 varianto reikalavimus.
-; Programa atlieka operacija AND dviems beveik bet kokio ilgio dvejetainiams skaiciams, esantiems failuose, ir isveda rezultata i trecia faila.
-
 .model small		    
 readBufSize     EQU 16	
 .stack 100h		
