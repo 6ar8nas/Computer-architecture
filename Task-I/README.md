@@ -2,4 +2,4 @@
 
 ### Problem  
 
-x  
+Write a program that changes capitalization of letters in the user-entered string and prints the line length.
